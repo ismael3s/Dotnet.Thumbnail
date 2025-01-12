@@ -1,0 +1,53 @@
+﻿services:
+  api:
+    image: dotnet.thumbnail.api
+    build:
+      context: .
+      dockerfile: src/Dotnet.Thumbnail.Api/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - "OTEL_EXPORTER_OTLP_ENDPOINT=http://dashboard:18889"
+      - "OTEL_SERVICE_NAME=Dotnet.Thumbnail"
+      - "Minio__Endpoint=minio:9000"
+    depends_on:
+      - dashboard
+      - minio
+#      - rabbitmq
+  dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.0
+    container_name: Dotnet.Thumbnail.Telemetry.Dashboard
+    ports:
+      - "18888:18888"
+      - "4317:18889"
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: Dotnet.Thumbnail.Minio
+    ports:
+      - "9000:9000" 
+      - "9001:9001" 
+    environment:
+      MINIO_ROOT_USER: guest       
+      MINIO_ROOT_PASSWORD: 12345678
+    command: server /data --console-address ":9001"
+  minio-init:
+    image: minio/mc
+    container_name: minio-init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until (mc alias set myminio http://minio:9000 guest 12345678); do sleep 2; done;
+      mc mb myminio/bucket || true;
+      mc policy set public myminio/bucket;
+      "
+    restart: "on-failure"
+#  rabbitmq:
+#    container_name: Dotnet.Thumbnail.Rabbitmq
+#    image: rabbitmq:4.0.5-management
+#    ports:
+#      - "5672:5672"
+#      - "15672:15672"
+#    environment:
+#      - RABBITMQ_DEFAULT_USER=guest
+#      - RABBITMQ_DEFAULT_PASS=guest

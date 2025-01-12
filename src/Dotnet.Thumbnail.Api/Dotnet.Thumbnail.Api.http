@@ -1,0 +1,24 @@
+@Api_HostAddress = http://localhost:5000
+
+GET {{Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+
+POST {{Api_HostAddress}}/
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="image.png"
+Content-Type: image/png
+
+< /home/ismael3s/Pictures/Screenshots/image.png
+--WebAppBoundary--
+
+###
+
+
+GET {{Api_HostAddress}}/01944859-8832-7ff5-88c0-ee6fbec2f393
+
+###
